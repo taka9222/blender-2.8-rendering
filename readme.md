@@ -9,7 +9,7 @@ config_tutorial.txt : usage of config settings <br>
 render_object.py : script that can run with command line <br>
 
 ### Tutorial
-Blender がカスタムビルドされている場所(C:\blender-git\build_windows_x64_vc16_Release\bin\Release等)で以下のコマンドにより実行できます．
+Blender がカスタムビルドされている場所(C:\blender-git\build_windows_x64_vc16_Release\bin\Release等)で以下のコマンドにより実行できます．※Program Files内は不可
 ```
 > blender.exe -b -P render_object.py config.ini (複数可)
 ```
