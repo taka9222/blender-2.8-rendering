@@ -1,0 +1,147 @@
+設定ファイルの使い方
+
+
+各セクションの概要
+[settings] : 入出力の場所に関する設定
+[rendering] : Cycles によるレンダー設定および環境設定
+[light] : 光源に関する設定
+[camera] : カメラに関する設定
+[object] : オブジェクトに関する設定
+[shader] : Principled BSDF に基づくマテリアルに関する設定
+
+setting 内の設定項目
+object_file : 設置するオブジェクトを指定．UV球を設置する場合は "Sphere" と，カスタムの
+    オブジェクトファイルを指定する場合は実行場所または working_dir 以下の相対パスで指定．
+    また，複数のオブジェクトを設置したい場合は，それぞれをカンマ区切りで指定する．
+working_dir : オブジェクトファイル・光源の座標・ビューの座標・テクスチャ・HDRI を
+    読み込む際の作業フォルダ．
+out_dir : レンダー画像等の出力先．
+
+rendering 内の設定項目
+resolution_x : レンダー画像の横幅．
+resolution_y : レンダー画像の高さ．
+sample : レンダリング時のサンプル数．
+max_bounces : ライトパスの最大反射回数．0 にすると直接光のみの反射となる．
+min_bounces : ライトパスの最小反射回数．
+glossy_bounces : 金属等の光沢部分における最大反射回数．
+transmission_bounces : 透過度を持つ素材の透過部分における最大反射回数．
+volume_bounces : 煙等のパーティクルに対する最大反射回数．
+transparent_max_bounces : 透明な素材の内部における最大反射回数．
+transparent_min_bounces : 透明な素材の内部における最小反射回数．
+tile_x : タイルサイズの横幅．GPU 実行時は 256 ，CPU 実行時は 16 が良いとされる．
+tile_y : タイルサイズの高さ．GPU 実行時は 256 ，CPU 実行時は 16 が良いとされる．
+denoising : blender 2.81 で導入された Intel による Open Image Denoise を有効化．
+denoising_legacy : Cycles による従来型のデノイズ機能を有効化．
+color_mode : レンダー画像のカラー．"BW"(モノクロ), "RGB", "RGBA" から指定．
+disable_anti_aliasing : Cycles レンダー時に適用されるブラーフィルタを無効化．
+transparent_background : レンダー画像のカラーが RGBA の際，背景部分を透過に．
+use_hdri : HDRI 環境マップの場所を指定．ファイルが存在する場合は読み込む．
+no_background : HDRI 環境マップの背景描写を無効化．
+hdri_offset : HDRI の z 軸を中心とする回転量 [rad] を指定．
+synchronize_with_views : 複数のビューでのレンダー時，HDRI をオブジェクトの回転に
+    合わせる．セクション [object] 内の enable_multiple_views が True であることが前提．
+background_color : 背景色を [0, 255] の RGB または RGBA で指定．
+
+light 内の設定項目
+model : 光源の種類．"distant"(サンライト), "near"(ポイントライト) から指定．
+energy : 光の放射量．distant では 3 程度，near では 100 程度を指定．
+SUN_angle : distant ライトにおける太陽の角直径 [rad] を指定．デフォルト値は 0.00918．
+POINT_size : near ライトにおけるシャドウソフトサイズ [m] を指定．デフォルト値は 0.25．
+amount : 設置する光源の数．
+light_directions_file : distant ライトの XYZ-オイラー角 または near ライトの座標 を
+    格納した csv ファイルを指定．これにより (csv ファイルの行数 / 光源数) 枚のレンダー
+    画像が生成される．また， csv ファイルの各行は "X座標, Y座標, Z座標, 放射量, angle
+    またはsize" と最大 5 つの値をサポートしており，energy, SUN_angle, POINT_size の
+    値が各光源ごとに個別に指定できるようになっている．
+file_normalization : distant ライトの方向を XYZ-オイラー角 の代わりに正規化された座標
+    を用いるようにする．正規化の手法は csv に格納された座標を (X, Y, Z) としたとき，
+    (-arcsin[Y / sqrt(Y ** 2 + Z ** 2)], arcsin[X / sqrt(X ** 2 + Z ** 2)], 0)
+    となる．
+enable_rendering_by_degree : 軸の回転一周分に沿った光源座標 (360度の光源) を有効化．
+    "X", "True"="Y", "Z" の中から選択すると，該当する軸回りに沿った光源座標でのレンダリング
+    が実行される．このオプションが有効の間，光源座標を含む csv ファイルは読み込まれない．
+degree : 軸の回転一周分に沿った光源座標のステップ幅 [deg] を指定．
+    これにより (360 / degree) 枚のレンダー画像が生成される．360 を指定すると
+    正面から撮影したレンダー画像 1 枚のみが生成され，それ以上の値を指定するとレンダー
+    画像は生成されなくなる．enable_rendering_by_degree を前提とする．
+POINT_radius : near ライトでの軸の回転一周分に沿った光源座標の半径 [m] を指定．
+    enable_rendering_by_degree を前提とする．
+synchronize_with_views : HDRI のそれと同様，光源をオブジェクトの回転に合わせる．
+    セクション [object] 内の enable_multiple_views が True であることが前提．
+
+camera 内の設定項目
+model : カメラの種類．"orthographic", "perspective" から選択．
+focal_length : カメラの焦点距離(35mm換算)．perspective 時のみ有効．
+sensor_width : カメラのイメージセンサの横幅 [mm]．
+sensor_height : カメラのイメージセンサの高さ [mm]．
+clip_start : 撮影範囲の最小距離 [m]．デフォルトは 0.1．
+clip_end : 撮影範囲の最大距離 [m]．デフォルトは 100．
+ortho_scale : orthographic カメラのスケール．デフォルトは 7.1429．
+shift_x : カメラの水平方向のシフト量を [-10, 10] で指定．
+shift_y : カメラの垂直方向のシフト量を [-10, 10] で指定．
+use_dof : カメラの被写界深度を有効化．
+fucus_distance : 被写界深度のピントの位置 [m]．デフォルトは 10．
+aperture_fstop : 被写界深度のF値を指定．デフォルトは 2.8．
+aperture_blades : 被写界深度の多角形のボケでの絞り羽根の枚数．デフォルトは 0．
+aperture_rotation : 絞りの羽根の回転量 [rad]．デフォルトは 0．
+aperture_ratio : アナモルフィックなボケを再現するための歪み．デフォルトは 1.0．
+
+object 内の設定項目
+preset : オブジェクトの種類に応じてプリセットを指定する．基本的に Sphere の場合には
+    "object_sphere" ，カスタムのオブジェクトファイルの場合には "object_custom" と
+    すれば良い．複数のオブジェクトを設置する場合，それぞれに応じたプリセットをカンマ
+    区切りで指定．なお，プリセットの数がオブジェクトの数に一致しない場合，最後に指定
+    したプリセットを複製または削除することにより，オブジェクトの数に自動的に合わせられる．
+enable_multiple_views : マルチビューを有効化．データセットの代わりに view_001 といった
+    連番のサブフォルダが生成され，各フォルダ内にデータセットが生成される．厳密には，
+    カメラを動かしているわけではなく，単にオブジェクトを回転させているだけであるが，
+    rendering および light セクションにある synchronize_with_views を True にすることで，
+    疑似的に複数のビューでのレンダリングを行うことが出来る．
+object_directions_file : オブジェクトの回転座標を格納した csv ファイルを指定．
+    座標系は XYZ-オイラー角 であり，各行 "X座標, Y座標, Z座標" の形の必要がある．
+    これにより csv ファイルの行数に等しい数のサブフォルダが生成される．
+ enable_rendering_by_degree : 軸の回転に沿ってビューを回転させる．light セクションでの
+    それと同様，回転させる軸を "X", "True"="Y", "Z" の中から選択する．このオプションが
+    有効の間，オブジェクトの回転座標を含む csv ファイルは読み込まれない．
+degree : オブジェクト回転させるステップ幅 [deg]．これにより (360 / degree) 個の
+    サブフォルダが生成される．
+
+object_sphere 内の設定項目
+segments : セグメント．球の軸に沿う辺の数．
+ring_count : リング数．球の軸に垂直となる辺の数．
+radius : 球の半径 [m]．
+location : 球の中心の座標 [m]．
+rotation : 球の XYZ-オイラー角 による回転量 [rad]．
+use_smooth : 球面におけるメッシュを滑らかに．
+subdivision_surface : サブディビジョンサーフェスを有効化．疑似的な細分化により
+    極端に大きなセグメントを比較的低負荷でレンダリングできる．
+
+object_custom 内の設定項目
+location : オブジェクトの座標 [m]．
+rotation : オブジェクトの XYZ-オイラー角 による回転量 [rad]．
+max_dimension : 最大寸法 [m]．オブジェクトはここで指定された値にスケールされる．
+    例えば棒状のオブジェクトに対し，max_dimension = 5 とすると，棒の長さは 5m となる．
+    また，"None" を指定すると，オリジナルのサイズが保たれる．
+geometry_to_origin : オブジェクトの中心を原点に合わせる．
+use_smooth : オブジェクト面におけるメッシュを滑らかに．
+no_shadow : オブジェクトの影を不可視に．
+
+shader 内の設定項目
+preset : オブジェクトに割り当てるマテリアルのプリセットを指定する．初期状態では
+    "lambertian", "sample1"(uniform_brdf), "sample2"(textured_brdf) から選択可能．
+    object セクションの preset と同様，プリセットの数は設置するオブジェクトの数に自動的に
+    調整される．
+
+shader プリセット内の設定項目
+Principled BSDF に基づく各パラメータを指定する．利用可能なパラメータは以下の通り．
+float 型 ; subsurface, metallic, specular, specular_tint, roughness, 
+    anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat, clearcoat_roughness, 
+    IOR, transmission, transmission_roughness
+[0, 255] の RGB または RGBA ; base_color, subsurface_color
+テクスチャ関連 ; color_texture, metallic_texture, specular_texture, roughness_texture, 
+    sheen_texture, sheentint_texture, ior_texture
+テクスチャをパラメータとして割り当てる場合，上記のテクスチャ関連のパラメータに，実行場所または 
+working_dir 以下にあるテクスチャ画像を指定する．テクスチャは円柱座標投影によってマッピングされる．
+なお，テクスチャ画像は [0, 1] にスケールされるが，specular_texture, ior_texture のみ，
+[0, 10] にスケールされる．また，事前に load_uv = True を記述しておくと，UV にアクセスできる
+オブジェクトに対し，UV に基づいたマッピングを行うことが出来る．
